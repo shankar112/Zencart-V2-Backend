@@ -3,7 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const authRoute = require('./routes/auth'); // <-- Import routes
+const authRoute = require('./routes/auth');
+const productRoute = require('./routes/product'); // <-- Import product routes
 
 // 1. Configure Environment Variables
 dotenv.config();
@@ -29,7 +30,8 @@ if (!process.env.MONGO_URI) {
 }
 
 // 5. Routes
-app.use('/api/auth', authRoute); // <-- Use Auth Routes
+app.use('/api/auth', authRoute);
+app.use('/api/products', productRoute); // <-- Use Product Routes
 
 // Basic Test Route
 app.get('/', (req, res) => {
