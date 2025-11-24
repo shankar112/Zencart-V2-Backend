@@ -3,24 +3,29 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const authRoute = require('./routes/auth');
+const productRoute = require('./routes/product');
+const orderRoute = require('./routes/order'); // <-- Import Order Route
 
-// 1. Configure Environment Variables
 dotenv.config();
 
-// 2. Initialize Express App
 const app = express();
 
-// 3. Middleware (The Bouncers)
-app.use(express.json()); // Allows us to accept JSON data in requests
-app.use(cors()); // Allows our future React frontend to talk to us
+app.use(express.json());
+app.use(cors());
 
-// 4. Basic Route (Test)
-app.get('/', (req, res) => {
-  res.send('Welcome to the ZenCart-V2 API! 🛒🔥');
-});
+if (!process.env.MONGO_URI) {
+  console.error("FATAL ERROR: MONGO_URI is not defined.");
+} else {
+  mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('MongoDB Connected Successfully! 🍃'))
+    .catch((err) => console.error('MongoDB Connection Error:', err));
+}
 
-// 5. Start Server
-const PORT = process.env.PORT || 5000; // 5000 is standard for E-commerce backends
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.use('/api/auth', authRoute);
+app.use('/api/products', productRoute);
+app.use('/api/orders', orderRoute); // <-- Use Order Route
+
+const PORT = process.env.PORT || 5000;
+app.get('/', (req, res) => { res.send('Welcome to the ZenCart-V2 API! 🛒🔥'); });
+app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
