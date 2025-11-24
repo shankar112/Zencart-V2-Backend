@@ -2,15 +2,19 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.token;
+  const authHeader = req.headers.authorization; // FIX: Use standard 'authorization' header
+  
   if (authHeader) {
-    const token = authHeader.split(" ")[1]; // Expecting "Bearer <token>"
+    const token = authHeader.split(" ")[1]; // "Bearer <token>"
     
-    jwt.verify(token, process.env.JWT_SECRET || "fallback_secret_key", (err, user) => {
-      if (err) {
-        // FIX: Added 'return' to stop execution if token is invalid
-        return res.status(403).json("Token is not valid!");
-      }
+    // FIX: Remove hardcoded fallback. Fail if env var is missing.
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        return res.status(500).json("Server configuration error: JWT_SECRET missing");
+    }
+
+    jwt.verify(token, secret, (err, user) => {
+      if (err) return res.status(403).json("Token is not valid!");
       req.user = user;
       next();
     });
@@ -19,10 +23,10 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-const verifyTokenAndAdmin = (req, res, next) => {
+// NEW: Check if the user is the owner of the data OR an admin
+const verifyTokenAndAuthorization = (req, res, next) => {
   verifyToken(req, res, () => {
-    // Check if user exists and is admin
-    if (req.user && req.user.isAdmin) {
+    if (req.user.id === req.params.userId || req.user.isAdmin) {
       next();
     } else {
       res.status(403).json("You are not allowed to do that!");
@@ -30,4 +34,14 @@ const verifyTokenAndAdmin = (req, res, next) => {
   });
 };
 
-module.exports = { verifyToken, verifyTokenAndAdmin };
+const verifyTokenAndAdmin = (req, res, next) => {
+  verifyToken(req, res, () => {
+    if (req.user.isAdmin) {
+      next();
+    } else {
+      res.status(403).json("You are not allowed to do that!");
+    }
+  });
+};
+
+module.exports = { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin };
