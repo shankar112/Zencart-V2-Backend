@@ -3,12 +3,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const authRoute = require('./routes/auth'); // <-- Import routes
 
 // 1. Configure Environment Variables
 dotenv.config();
 
 // --- DEBUGGING: Check if MONGO_URI is loaded ---
-console.log("Attempting to connect to:", process.env.MONGO_URI); 
+console.log("Attempting to connect to DB..."); 
 // -----------------------------------------------
 
 // 2. Initialize Express App
@@ -19,7 +20,6 @@ app.use(express.json());
 app.use(cors());
 
 // 4. Connect to MongoDB
-// We check if the string exists before connecting to avoid the crash
 if (!process.env.MONGO_URI) {
   console.error("FATAL ERROR: MONGO_URI is not defined. Check your .env file!");
 } else {
@@ -28,7 +28,10 @@ if (!process.env.MONGO_URI) {
     .catch((err) => console.error('MongoDB Connection Error:', err));
 }
 
-// 5. Basic Route
+// 5. Routes
+app.use('/api/auth', authRoute); // <-- Use Auth Routes
+
+// Basic Test Route
 app.get('/', (req, res) => {
   res.send('Welcome to the ZenCart-V2 API! 🛒🔥');
 });
