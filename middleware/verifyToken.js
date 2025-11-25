@@ -2,16 +2,12 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization; // FIX: Use standard 'authorization' header
-  
+  const authHeader = req.headers.authorization;
   if (authHeader) {
-    const token = authHeader.split(" ")[1]; // "Bearer <token>"
-    
-    // FIX: Remove hardcoded fallback. Fail if env var is missing.
+    const token = authHeader.split(" ")[1];
     const secret = process.env.JWT_SECRET;
-    if (!secret) {
-        return res.status(500).json("Server configuration error: JWT_SECRET missing");
-    }
+    
+    if (!secret) return res.status(500).json("Server configuration error: JWT_SECRET missing");
 
     jwt.verify(token, secret, (err, user) => {
       if (err) return res.status(403).json("Token is not valid!");
@@ -23,10 +19,10 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// NEW: Check if the user is the owner of the data OR an admin
 const verifyTokenAndAuthorization = (req, res, next) => {
   verifyToken(req, res, () => {
-    if (req.user.id === req.params.userId || req.user.isAdmin) {
+    // Allow if user is deleting themselves OR if they are an admin
+    if (req.user.id === req.params.id || req.user.isAdmin) {
       next();
     } else {
       res.status(403).json("You are not allowed to do that!");
