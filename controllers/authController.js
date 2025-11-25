@@ -7,7 +7,7 @@ const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json("User already exists");
+    if (userExists) return res.status(400).json("User already exists!");
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -23,10 +23,14 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-    if (!user) return res.status(401).json("Wrong credentials!");
+    
+    // CHANGE 1: Specific error for User Not Found
+    if (!user) return res.status(404).json("User not found!");
 
     const validPassword = await bcrypt.compare(req.body.password, user.password);
-    if (!validPassword) return res.status(401).json("Wrong credentials!");
+    
+    // CHANGE 2: Specific error for Password
+    if (!validPassword) return res.status(401).json("Wrong password!");
 
     const accessToken = jwt.sign(
       { id: user._id, isAdmin: user.isAdmin },
