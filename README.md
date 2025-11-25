@@ -107,14 +107,3 @@ The API will be running on `http://localhost:5000`.
     -   **Body**: `{ "items": [ ... ], "total": 123.45 }`
 
 ---
-
-## Admin Access
-
-To perform administrative actions like adding products, you need to be authenticated as an admin.
-
-A default admin user is configured. You can use the following credentials to log in via the `POST /api/auth/login` endpoint to receive an admin-privileged JWT.
-
--   **Email**: `admin@zencart.com`
--   **Password**: `password123`
-
-Include the received token in the `Authorization` header of your API requests (e.g., `Authorization: Bearer <token>`).
