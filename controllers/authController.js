@@ -1,48 +1,33 @@
-// controllers/authController.js
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+// controllers/aiController.js
+// Use the correct Node.js import for the generative-ai library
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const register = async (req, res) => {
+const generateDescription = async (req, res) => {
+  const { productName } = req.body;
+
+  if (!productName) {
+    return res.status(400).json("Product name is required");
+  }
+
   try {
-    const { name, email, password } = req.body;
-    const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json("User already exists!");
+    // Initialize with your API Key
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    
+    // Use the correct model name
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const prompt = `Write a professional, catchy, and SEO-friendly product description for an e-commerce item named: "${productName}". Keep it under 3 sentences.`;
 
-    const newUser = new User({ name, email, password: hashedPassword });
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    res.status(200).json({ description: text });
   } catch (err) {
-    res.status(500).json(err);
+    console.error("AI Error:", err);
+    // Send the actual error message to help debug
+    res.status(500).json({ message: "Failed to generate description", error: err.message });
   }
 };
 
-const login = async (req, res) => {
-  try {
-    const user = await User.findOne({ email: req.body.email });
-    
-    // CHANGE 1: Specific error for User Not Found
-    if (!user) return res.status(404).json("User not found!");
-
-    const validPassword = await bcrypt.compare(req.body.password, user.password);
-    
-    // CHANGE 2: Specific error for Password
-    if (!validPassword) return res.status(401).json("Wrong password!");
-
-    const accessToken = jwt.sign(
-      { id: user._id, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET,
-      { expiresIn: "3d" }
-    );
-
-    const { password, ...others } = user._doc;
-    res.status(200).json({ ...others, accessToken });
-  } catch (err) {
-    res.status(500).json(err);
-  }
-};
-
-module.exports = { register, login };
+module.exports = { generateDescription };
