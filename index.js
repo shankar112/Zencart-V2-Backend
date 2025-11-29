@@ -17,6 +17,7 @@ const aiRoute = require('./routes/ai');
 
 // Check Keys
 console.log("Stripe Key Loaded:", process.env.STRIPE_KEY ? "YES" : "NO");
+console.log("Gemini API Key Loaded:", process.env.GEMINI_API_KEY ? "YES" : "NO");
 
 const app = express();
 
