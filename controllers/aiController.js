@@ -1,5 +1,4 @@
 // controllers/aiController.js
-// We use the NEW library: @google/genai
 const { GoogleGenAI } = require("@google/genai");
 
 const generateDescription = async (req, res) => {
@@ -10,15 +9,15 @@ const generateDescription = async (req, res) => {
   }
 
   try {
-    // 1. Initialize the Client (matches your screenshot)
+    // 1. Initialize the Client (New SDK Syntax)
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `Write a professional, catchy, and SEO-friendly product description for an e-commerce item named: "${productName}". Keep it under 3 sentences.`;
 
-    // 2. Generate Content using the new syntax
-    // We use 'gemini-1.5-flash' as it is the current stable, fast model.
+    // 2. Generate Content
+    // We use 'gemini-1.5-flash' because 'gemini-pro' is deprecated in this version
     const { response } = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       contents: [
         {
           role: "user",
@@ -27,13 +26,14 @@ const generateDescription = async (req, res) => {
       ]
     });
 
-    // 3. Extract the text
-    const text = response.text();
+    // 3. Extract the text correctly
+    // The new SDK returns the text differently than the old one
+    const text = response.text(); 
 
     res.status(200).json({ description: text });
   } catch (err) {
-    console.error("AI Error:", err);
-    // Send the full error message for debugging
+    console.error("AI Error Details:", err);
+    // Send the full error message so we can see it in the frontend console if it fails
     res.status(500).json({ message: "Failed to generate description", error: err.message });
   }
 };
