@@ -1,4 +1,5 @@
 // controllers/aiController.js
+// Use the correct Node.js import for the generative-ai library
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const generateDescription = async (req, res) => {
@@ -9,10 +10,11 @@ const generateDescription = async (req, res) => {
   }
 
   try {
+    // Initialize with your API Key
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     
-    // FIX: Use the correct model name 'gemini-1.5-flash'
-    const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL_NAME || "gemini-1.5-flash" });
+    // Use the correct model name
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Write a professional, catchy, and SEO-friendly product description for an e-commerce item named: "${productName}". Keep it under 3 sentences.`;
 
@@ -23,8 +25,26 @@ const generateDescription = async (req, res) => {
     res.status(200).json({ description: text });
   } catch (err) {
     console.error("AI Error:", err);
-    res.status(500).json("Failed to generate description");
+    // Send the actual error message to help debug
+    res.status(500).json({ message: "Failed to generate description", error: err.message });
   }
 };
 
 module.exports = { generateDescription };
+
+
+import { GoogleGenAI } from "@google/genai";
+// const { GoogleGenAI } = require("@google/genai");
+
+// The client gets the API key from the environment variable `GEMINI_API_KEY`.
+const ai = new GoogleGenAI({});
+
+async function main() {
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: "Explain how AI works in a few words",
+  });
+  console.log(response.text);
+}
+
+main();
