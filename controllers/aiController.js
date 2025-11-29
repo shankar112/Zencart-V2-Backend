@@ -5,36 +5,38 @@ const generateDescription = async (req, res) => {
   const { productName } = req.body;
 
   if (!productName) {
-    return res.status(400).json("Product name is required");
+    return res.status(400).json({ message: "Product name is required" });
   }
 
   try {
-    // 1. Initialize the Client (New SDK Syntax)
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    // Check if API key is available
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ message: "Gemini API key is not configured" });
+    }
 
-    const prompt = `Write a professional, catchy, and SEO-friendly product description for an e-commerce item named: "${productName}". Keep it under 3 sentences.`;
+    // Initialize the Client - Gets API key from GEMINI_API_KEY environment variable automatically
+    const ai = new GoogleGenAI({});
 
-    // 2. Generate Content
-    // We use 'gemini-1.5-flash' because 'gemini-pro' is deprecated in this version
-    const { response } = await ai.models.generateContent({
+    const prompt = `Write a professional, catchy, and SEO-friendly product description for an e-commerce item named: "${productName}". Keep it under 3 sentences. Focus on benefits and appeal to the target customer.`;
+
+    // Generate Content using the correct method
+    const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }]
-        }
-      ]
+      contents: prompt
     });
 
-    // 3. Extract the text correctly
-    // The new SDK returns the text differently than the old one
-    const text = response.text(); 
+    // Extract the text from the response
+    const text = response.text();
 
     res.status(200).json({ description: text });
   } catch (err) {
     console.error("AI Error Details:", err);
-    // Send the full error message so we can see it in the frontend console if it fails
-    res.status(500).json({ message: "Failed to generate description", error: err.message });
+    // Send detailed error information for debugging
+    res.status(500).json({ 
+      message: "Failed to generate description", 
+      error: err.message,
+      details: err.toString()
+    });
   }
 };
 
