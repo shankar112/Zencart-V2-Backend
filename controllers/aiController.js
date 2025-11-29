@@ -1,5 +1,5 @@
 // controllers/aiController.js
-// Use the correct Node.js import for the generative-ai library
+// We use the library you already have installed: @google/generative-ai
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const generateDescription = async (req, res) => {
@@ -10,14 +10,15 @@ const generateDescription = async (req, res) => {
   }
 
   try {
-    // Initialize with your API Key
+    // 1. Initialize with your API Key
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     
-    // Use the correct model name
+    // 2. Use the 'gemini-1.5-flash' model (The old 'gemini-pro' is what caused the 404)
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Write a professional, catchy, and SEO-friendly product description for an e-commerce item named: "${productName}". Keep it under 3 sentences.`;
 
+    // 3. Generate Content
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
@@ -25,26 +26,9 @@ const generateDescription = async (req, res) => {
     res.status(200).json({ description: text });
   } catch (err) {
     console.error("AI Error:", err);
-    // Send the actual error message to help debug
+    // Send the actual error message to help debug if it happens again
     res.status(500).json({ message: "Failed to generate description", error: err.message });
   }
 };
 
 module.exports = { generateDescription };
-
-
-import { GoogleGenAI } from "@google/genai";
-// const { GoogleGenAI } = require("@google/genai");
-
-// The client gets the API key from the environment variable `GEMINI_API_KEY`.
-const ai = new GoogleGenAI({});
-
-async function main() {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: "Explain how AI works in a few words",
-  });
-  console.log(response.text);
-}
-
-main();
